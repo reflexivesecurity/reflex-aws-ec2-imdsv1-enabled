@@ -1,5 +1,6 @@
 """ Module for ReflexAwsEc2Imdsv1Enabled """
 
+import datetime
 import json
 
 import boto3
@@ -14,7 +15,8 @@ class ReflexAwsEc2Imdsv1Enabled(AWSRule):
 
     def extract_event_data(self, event):
         """ Extract required event data """
-        self.instance_items = event["detail"]["responseElements"]["items"]
+        self.instance_items = event["detail"]["responseElements"].get("items", [])
+        self.non_compliant_instance_ids = []
 
     def resource_compliant(self):
         """
@@ -22,15 +24,57 @@ class ReflexAwsEc2Imdsv1Enabled(AWSRule):
 
         Return True if it is compliant, and False if it is not.
         """
-        # TODO: Implement a check for determining if the resource is compliant
+        compliant = True
+
+        instance_ids = []
+
+        if self.instance_items:
+            for item in self.instance_items:
+                instance_ids.append(item["instanceId"])
+        else:
+            date_filter = (
+                datetime.datetime.now() - datetime.timedelta(days=1)
+            ).strftime("%Y-%m-%d") + "*"
+            instance_ids = self.get_filtered_instances(date_filter)
+
+        response = self.client.describe_instances(InstanceIds=instance_ids)
+
+        for instance in response["Reservations"][0]["Instances"]:
+            if (
+                instance["MetadataOptions"]["HttpEndpoint"] == "enabled"
+                and instance["MetadataOptions"]["HttpTokens"] != "required"
+            ):
+                compliant = False
+                self.non_compliant_instance_ids.append(item["instanceId"])
+
+        return compliant
 
     def get_remediation_message(self):
         """ Returns a message about the remediation action that occurred """
-        # TODO: Provide a human readable message describing what occured. This
-        # message is sent in all notifications.
-        #
-        # Example:
-        # return f"The S3 bucket {self.bucket_name} was unencrypted. AES-256 encryption was enabled."
+        return f"The following EC2 instances were launched allowing IMDSv1: {self.non_compliant_instance_ids}"
+
+    def get_filtered_instances(self, date_filter):
+        instance_ids = []
+
+        filters = [
+            {"Name": "launch-time", "Values": [date_filter]},
+            {"Name": "instance-state-name", "Values": ["pending", "running"]},
+        ]
+
+        response = self.client.describe_instances(Filters=filters)
+        next_token = response.get("NextToken")
+
+        for instance in response["Reservations"][0]["Instances"]:
+            instance_ids.append(instance["InstanceId"])
+
+        while next_token:
+            response = self.client.describe_instances(Filters=filters)
+            next_token = response.get("NextToken")
+
+            for instance in response["Reservations"][0]["Instances"]:
+                instance_ids.append(instance["InstanceId"])
+
+        return instance_ids
 
 
 def lambda_handler(event, _):

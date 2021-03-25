@@ -1,6 +1,6 @@
 # reflex-aws-ec2-imdsv1-enabled
 
-TODO: Write a brief description of your rule and what it does.
+Reflex rule to detect when less secure IMDSv1 setting is allowed. 
 
 ## Usage
 
