@@ -7,17 +7,14 @@ from reflex_core import AWSRule, subscription_confirmation
 
 
 class ReflexAwsEc2Imdsv1Enabled(AWSRule):
-    """ TODO: A description for your rule """
+    """ Rule to detect when a ec2 instance is launched allowing IMDSv1. """
 
     def __init__(self, event):
         super().__init__(event)
 
     def extract_event_data(self, event):
         """ Extract required event data """
-        # TODO: Extract any data you need from the triggering event.
-        #
-        # Example:
-        # self.bucket_name = event["detail"]["requestParameters"]["bucketName"]
+        self.instance_items = event["detail"]["responseElements"]["items"]
 
     def resource_compliant(self):
         """

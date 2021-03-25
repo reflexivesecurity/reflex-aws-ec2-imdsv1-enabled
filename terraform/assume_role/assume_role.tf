@@ -5,7 +5,18 @@ module "assume_role" {
 
   function_name        = "ReflexAwsEc2Imdsv1Enabled"
   custom_lambda_policy = <<EOF
-# TODO: Provide required lambda permissions policy
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "ec2:DescribeInstances"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ]
+}
 EOF
 
   lambda_execution_role_arn = "arn:aws:iam::${var.parent_account}:role/ReflexReflexAwsEc2Imdsv1EnabledLambdaExecution"
