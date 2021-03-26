@@ -41,13 +41,14 @@ class ReflexAwsEc2Imdsv1Enabled(AWSRule):
 
         response = self.client.describe_instances(InstanceIds=instance_ids)
 
-        for instance in response["Reservations"][0]["Instances"]:
-            if (
-                instance["MetadataOptions"]["HttpEndpoint"] == "enabled"
-                and instance["MetadataOptions"]["HttpTokens"] != "required"
-            ):
-                compliant = False
-                self.non_compliant_instance_ids.append(instance["instanceId"])
+        for reservation in response["Reservations"]:
+            for instance in reservation["Instances"]:
+                if (
+                    instance["MetadataOptions"]["HttpEndpoint"] == "enabled"
+                    and instance["MetadataOptions"]["HttpTokens"] != "required"
+                ):
+                    compliant = False
+                    self.non_compliant_instance_ids.append(instance["instanceId"])
 
         return compliant
 
