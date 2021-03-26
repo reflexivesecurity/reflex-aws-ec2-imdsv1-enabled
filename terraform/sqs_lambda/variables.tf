@@ -23,5 +23,5 @@ variable "cloudwatch_event_rule_arn" {
 variable "package_location" {
   description = "Path for the Lambda deployment package"
   type        = string
-  default     = "../package_build/reflex-aws-ec2-imdsv1-enabled.zip"
+  default     = "../package_build/ec2-imdsv1-enabled.zip"
 }
