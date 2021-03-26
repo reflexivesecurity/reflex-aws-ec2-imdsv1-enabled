@@ -15,7 +15,7 @@ class ReflexAwsEc2Imdsv1Enabled(AWSRule):
 
     def extract_event_data(self, event):
         """ Extract required event data """
-        self.instance_items = event["detail"]["responseElements"].get("items", [])
+        self.instance_items = event["detail"]["responseElements"].get("instancesSet", [])
         self.non_compliant_instance_ids = []
 
     def resource_compliant(self):
@@ -29,7 +29,7 @@ class ReflexAwsEc2Imdsv1Enabled(AWSRule):
         instance_ids = []
 
         if self.instance_items:
-            for item in self.instance_items:
+            for item in self.instance_items['items']:
                 instance_ids.append(item["instanceId"])
         else:
             date_filter = (
