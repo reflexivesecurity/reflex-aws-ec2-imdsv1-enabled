@@ -15,7 +15,9 @@ class ReflexAwsEc2Imdsv1Enabled(AWSRule):
 
     def extract_event_data(self, event):
         """ Extract required event data """
-        self.instance_items = event["detail"]["responseElements"].get("instancesSet", [])
+        self.instance_items = event["detail"]["responseElements"].get(
+            "instancesSet", []
+        )
         self.non_compliant_instance_ids = []
 
     def resource_compliant(self):
@@ -29,7 +31,7 @@ class ReflexAwsEc2Imdsv1Enabled(AWSRule):
         instance_ids = []
 
         if self.instance_items:
-            for item in self.instance_items['items']:
+            for item in self.instance_items["items"]:
                 instance_ids.append(item["instanceId"])
         else:
             date_filter = (
@@ -64,15 +66,17 @@ class ReflexAwsEc2Imdsv1Enabled(AWSRule):
         response = self.client.describe_instances(Filters=filters)
         next_token = response.get("NextToken")
 
-        for instance in response["Reservations"][0]["Instances"]:
-            instance_ids.append(instance["InstanceId"])
+        for reservation in response["Reservations"]:
+            for instance in reservation["Instances"]:
+                instance_ids.append(instance["InstanceId"])
 
         while next_token:
             response = self.client.describe_instances(Filters=filters)
             next_token = response.get("NextToken")
 
-            for instance in response["Reservations"][0]["Instances"]:
-                instance_ids.append(instance["InstanceId"])
+            for reservation in response["Reservations"]:
+                for instance in reservation["Instances"]:
+                    instance_ids.append(instance["InstanceId"])
 
         return instance_ids
 
