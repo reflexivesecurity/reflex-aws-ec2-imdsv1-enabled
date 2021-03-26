@@ -48,7 +48,7 @@ class ReflexAwsEc2Imdsv1Enabled(AWSRule):
                     and instance["MetadataOptions"]["HttpTokens"] != "required"
                 ):
                     compliant = False
-                    self.non_compliant_instance_ids.append(instance["instanceId"])
+                    self.non_compliant_instance_ids.append(instance["InstanceId"])
 
         return compliant
 
